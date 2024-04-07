@@ -62,7 +62,7 @@ exports.dialogflowWebhook = async (req, res) => {
     units.sort((a, b) => a.distance - b.distance);
 
     let unitsMessage = units.map(u => `${u.name} está a ${u.distance.toFixed(2)}km de distancia.`).join('\n');
-    let closestUnitMessage = `La unidad más cercana es ${units[0].name}, a ${units[0].distance.toFixed(2)}km de distancia.`;
+    let closestUnitMessage = `La unidad más cercana es ${units[0].name}, a ${units[0].distance.toFixed(2)}km de distancia. Indique la unidad en la que le gustaría programar su cita y su correo electrónico de esta manera: "Unidad: [nombre de la unidad de atención]. Email: [email donde se enviará la invitación]."`;
 
     res.json({
         fulfillment_response: {

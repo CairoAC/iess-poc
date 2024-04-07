@@ -9,6 +9,8 @@ exports.dialogflowScheduleUnitWebhook = async (req, res) => {
     console.log(req.body.sessionInfo.parameters);
 
     const chosenUnitName = req.body.sessionInfo.parameters.chooseunit;
+    const atendeeEmail = req.body.sessionInfo.parameters.atendee;
+
     console.log("Unidade escolhida recebida:", chosenUnitName);
 
     if (!chosenUnitName) {
@@ -25,9 +27,9 @@ exports.dialogflowScheduleUnitWebhook = async (req, res) => {
             const unitDoc = unitSnapshot.docs[0];
             const unitEmail = unitDoc.data().Email; 
 
-            const eventResult = await createGoogleMeetEvent(unitEmail);
+            const eventResult = await createGoogleMeetEvent(unitEmail, atendeeEmail);
             if (eventResult) {
-                res.json(createResponse(`La unidad elegida fue ${chosenUnitName}. El enlace de Google Meet es: ${eventResult}. Se hizo la cita. Guarde el link.`));
+                res.json(createResponse(`La unidad elegida fue ${chosenUnitName}. El enlace de Google Meet es: ${eventResult}. Se hizo la cita.`));
             } else {
                 res.json(createResponse("Hubo un error al crear el evento de Google Meet. Por favor, intenta de nuevo."));
             }
@@ -58,7 +60,7 @@ async function getSecret(secretName) {
     return JSON.parse(payload);
 }
 
-async function createGoogleMeetEvent(unitEmail) {
+async function createGoogleMeetEvent(unitEmail, atendeeEmail) {
     const secretName = "projects/1043917236633/secrets/calendar-credentials/versions/latest";
     const credentials = await getSecret(secretName);
     console.log(secretName);
@@ -83,6 +85,7 @@ async function createGoogleMeetEvent(unitEmail) {
             dateTime: '2024-04-20T11:00:00',
             timeZone: 'America/Sao_Paulo',
         },
+        attendees: [{email: atendeeEmail}],
         reminders: {
             useDefault: false,
             overrides: [
