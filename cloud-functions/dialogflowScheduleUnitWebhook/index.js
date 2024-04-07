@@ -67,7 +67,7 @@ async function createGoogleMeetEvent(unitEmail) {
         email: credentials.client_email,
         key: credentials.private_key,
         scopes: ['https://www.googleapis.com/auth/calendar'],
-        subject: "cairo.costa@reeducation.com.br"
+        subject: unitEmail
     });
 
     const calendar = google.calendar({version: 'v3', auth: auth});
