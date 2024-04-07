@@ -61,8 +61,8 @@ exports.dialogflowWebhook = async (req, res) => {
 
     units.sort((a, b) => a.distance - b.distance);
 
-    let unitsMessage = units.map(u => `${u.name} está a ${u.distance.toFixed(2)} de distancia.`).join('\n');
-    let closestUnitMessage = `La unidad más cercana es less Ventanas ${units[0].name}, a ${units[0].distance.toFixed(2)} de distancia.`;
+    let unitsMessage = units.map(u => `${u.name} está a ${u.distance.toFixed(2)}km de distancia.`).join('\n');
+    let closestUnitMessage = `La unidad más cercana es ${units[0].name}, a ${units[0].distance.toFixed(2)}km de distancia.`;
 
     res.json({
         fulfillment_response: {
