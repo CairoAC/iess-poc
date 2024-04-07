@@ -14,23 +14,57 @@ type ChatMessage = {
 export default function Home() {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [userInput, setUserInput] = useState('');
+  const [userLocation, setUserLocation] = useState<{ latitude: number | null; longitude: number | null }>({ latitude: null, longitude: null });
+
+  const captureUserLocation = () => {
+    return new Promise((resolve, reject) => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+          const { latitude, longitude } = position.coords;
+          resolve({ latitude, longitude });
+        }, error => {
+          console.error('Erro ao obter localização', error);
+          reject(error);
+        });
+      } else {
+        console.error('Geolocalização não é suportada por este navegador.');
+        reject(new Error('Geolocalização não é suportada por este navegador.'));
+      }
+    });
+  };
 
   const handleSendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!userInput.trim()) return;
 
+    const geolocation = await captureUserLocation();
+    
+    console.log(geolocation);
+
     const newMessage: ChatMessage = { from: 'Humano', text: userInput };
     setChatMessages([...chatMessages, newMessage]);
 
+    const url = process.env.NEXT_PUBLIC_CLOUD_FUNCTION_URL;
+    const requestBody = JSON.stringify({ 
+      query: userInput,
+      geolocation 
+    });
+
     try {
-      const response = await fetch('/api/initialize-dialogflow', {
+      if (!url) {
+        console.error('CLOUD_FUNCTION_URL não está definido');
+        return;
+      }
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ query: userInput }),
+        body: requestBody,
       });
+
+      console.log('Corpo da requisição: ' + requestBody)
 
       if (!response.ok) {
         throw new Error('Falha ao enviar mensagem.');
