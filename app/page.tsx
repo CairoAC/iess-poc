@@ -14,7 +14,7 @@ type ChatMessage = {
 export default function Home() {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [userInput, setUserInput] = useState('');
-  const [userLocation, setUserLocation] = useState<{ latitude: number | null; longitude: number | null }>({ latitude: null, longitude: null });
+  const [isLoading, setIsLoading] = useState(false);
 
   const captureUserLocation = () => {
     return new Promise((resolve, reject) => {
@@ -38,22 +38,25 @@ export default function Home() {
 
     if (!userInput.trim()) return;
 
+    setIsLoading(true);
+
     const geolocation = await captureUserLocation();
-    
+
     console.log(geolocation);
 
     const newMessage: ChatMessage = { from: 'Humano', text: userInput };
     setChatMessages([...chatMessages, newMessage]);
 
     const url = process.env.NEXT_PUBLIC_CLOUD_FUNCTION_URL;
-    const requestBody = JSON.stringify({ 
+    const requestBody = JSON.stringify({
       query: userInput,
-      geolocation 
+      geolocation
     });
 
     try {
       if (!url) {
         console.error('CLOUD_FUNCTION_URL não está definido');
+        setIsLoading(false);
         return;
       }
       const response = await fetch(url, {
@@ -80,9 +83,10 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
+    } finally {
+      setIsLoading(false);
+      setUserInput('');
     }
-
-    setUserInput('');
   };
 
   return (
@@ -114,8 +118,14 @@ export default function Home() {
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}
               className="flex-1"
+              disabled={isLoading}
             />
-            <Button type="submit">Enviar</Button>
+            <Button type="submit" disabled={isLoading}>Enviar</Button>
+            {isLoading && (
+              <div className="flex justify-center items-center ml-4">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
+              </div>
+            )}
           </form>
         </CardFooter>
       </Card>
